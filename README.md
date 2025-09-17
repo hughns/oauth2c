@@ -26,6 +26,7 @@ advanced OAuth 2.0, OIDC, OIDF FAPI and JWT profiles.
 - support for **Pushed Authorization Requests** (**PAR**)
 - support for **Demonstration of Proof of Possession** (**DPoP**)
 - support for **Rich Authorization Requests** (**RAR**)
+- support for **Dynamic Client Registration Protocol** (**RFC 7591**)
 
 ## Installation
 
@@ -701,6 +702,89 @@ oauth2c https://oauth2c.us.authz.cloudentity.io/oauth2c/demo \
   --grant-type authorization_code \
   --auth-method client_secret_basic \
   --rar '[{"type":"payment_initiation","locations":["https://example.com/payments"],"instructedAmount":{"currency":"EUR","amount":"123.50"},"creditorName":"Merchant A","creditorAccount":{"bic":"ABCIDEFFXXX","iban":"DE02100100109307118603"},"remittanceInformationUnstructured":"Ref Number Merchant"}]'
+```
+
+#### Dynamic Client Registration
+
+[OAuth 2.0 Dynamic Client Registration Protocol (RFC 7591)](https://datatracker.ietf.org/doc/html/rfc7591)
+allows OAuth2 clients to register themselves with authorization servers at runtime.
+This eliminates the need for pre-configuration or manual registration processes.
+
+##### Basic Registration
+
+Register a new client with default settings:
+
+```sh
+oauth2c register https://authorization-server.com \
+  --client-name "My OAuth2 Client" \
+  --no-prompt
+```
+
+##### Registration with Custom Metadata
+
+Register a client with specific metadata:
+
+```sh
+oauth2c register https://authorization-server.com \
+  --client-name "My Advanced OAuth2 Client" \
+  --redirect-uris https://myapp.com/callback \
+  --grant-types authorization_code,refresh_token \
+  --response-types code \
+  --scope "read write admin" \
+  --token-endpoint-auth-method client_secret_post \
+  --contacts admin@myapp.com,security@myapp.com \
+  --client-uri https://myapp.com \
+  --policy-uri https://myapp.com/privacy \
+  --tos-uri https://myapp.com/terms \
+  --no-prompt
+```
+
+##### Registration with Initial Access Token
+
+Some authorization servers require an initial access token for client registration:
+
+```sh
+oauth2c register https://authorization-server.com \
+  --initial-access-token eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9... \
+  --client-name "My Secure Client" \
+  --no-prompt
+```
+
+##### Output Formats
+
+Get registration response as JSON for programmatic use:
+
+```sh
+oauth2c register https://authorization-server.com \
+  --client-name "My Client" \
+  --output json \
+  --no-prompt
+```
+
+Get registration response as oauth2c configuration file:
+
+```sh
+oauth2c register https://authorization-server.com \
+  --client-name "My Client" \
+  --output config \
+  --no-prompt > client-config.json
+```
+
+##### Using Registered Client
+
+After registration, you can use the client configuration file directly:
+
+```sh
+# First, register the client and save config
+oauth2c register https://authorization-server.com \
+  --client-name "My Client" \
+  --output config \
+  --no-prompt > client.json
+
+# Then use the registered client for OAuth2 flows
+oauth2c client.json \
+  --grant-type authorization_code \
+  --scopes "read write"
 ```
 
 ### Miscellaneous
