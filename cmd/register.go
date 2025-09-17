@@ -37,6 +37,7 @@ func NewRegisterCmd() *RegisterCmd {
 		timeout   time.Duration
 		insecure  bool
 		output    string
+		noPrompt  bool
 	)
 
 	cmd := &RegisterCmd{
@@ -66,16 +67,21 @@ func NewRegisterCmd() *RegisterCmd {
 					dcrConfig.RegistrationEndpoint = sconfig.RegistrationEndpoint
 				}
 
-				// Validate that we have a registration endpoint
-				if dcrConfig.RegistrationEndpoint == "" {
-					return fmt.Errorf("registration endpoint is required (use --registration-endpoint flag or provide issuer URL with registration_endpoint in .well-known/openid-configuration)")
-				}
-
 				// Set defaults if metadata is empty
 				if len(dcrConfig.Metadata.RedirectURIs) == 0 &&
 					len(dcrConfig.Metadata.GrantTypes) == 0 &&
 					dcrConfig.Metadata.ClientName == "" {
 					dcrConfig.Metadata = oauth2.DefaultRegistrationMetadata()
+				}
+
+				// Prompt for configuration if no-prompt is not set
+				if !noPrompt {
+					dcrConfig = PromptForDCRConfig(dcrConfig, sconfig)
+				}
+
+				// Validate that we have a registration endpoint
+				if dcrConfig.RegistrationEndpoint == "" {
+					return fmt.Errorf("registration endpoint is required (use --registration-endpoint flag or provide issuer URL with registration_endpoint in .well-known/openid-configuration)")
 				}
 
 				// Register the client
@@ -177,6 +183,7 @@ func NewRegisterCmd() *RegisterCmd {
 	cmd.Flags().DurationVar(&timeout, "http-timeout", 10*time.Second, "HTTP client timeout")
 	cmd.Flags().BoolVar(&insecure, "insecure", false, "allow insecure TLS connections")
 	cmd.Flags().StringVarP(&output, "output", "o", "default", "output format (default, json, config)")
+	cmd.Flags().BoolVar(&noPrompt, "no-prompt", false, "disable interactive prompts")
 
 	return cmd
 }
