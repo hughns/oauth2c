@@ -19,6 +19,7 @@ type ServerConfig struct {
 	DeviceAuthorizationEndpoint        string `json:"device_authorization_endpoint"`
 	PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint"`
 	TokenEndpoint                      string `json:"token_endpoint"`
+	RegistrationEndpoint               string `json:"registration_endpoint"`
 	MTLsEndpointAliases                struct {
 		TokenEndpoint                      string `json:"token_endpoint"`
 		PushedAuthorizationRequestEndpoint string `json:"pushed_authorization_request_endpoint"`
